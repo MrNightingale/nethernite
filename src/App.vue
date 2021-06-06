@@ -37,12 +37,74 @@
             :key="item.name"
             class="ma-3"
           >
-            <v-card class="card">
+            <v-card
+              class="card"
+              @click="openModal(item.name)"
+            >
               <v-card-title class="subheading font-weight-bold">
                 {{ item.name }}
               </v-card-title>
               <v-card-subtitle>{{ item.description }}</v-card-subtitle>
             </v-card>
+            <modal
+              v-if="currentCard === item.name"
+              :show-modal="isModal"
+              @close="closeModal"
+            >
+              <template #header>
+                <img
+                  v-if="item.icon"
+                  :src="item.icon"
+                  alt="package icon"
+                  class="package__icon"
+                >
+                <h3 class="text-h4">
+                  {{ item.name }}
+                </h3>
+              </template>
+              <template #body>
+                <p>{{ item.description }}</p>
+                <div class="package__info">
+                  <v-btn
+                    v-if="item.link"
+                    :href="item.link"
+                    target="_blank"
+                    class="mr-12 black--text"
+                    icon
+                  >
+                    <v-icon size="32px">
+                      mdi-github
+                    </v-icon>
+                  </v-btn>
+                  <div
+                    v-if="item.version"
+                    class="package__info-item mr-12"
+                    title="version"
+                  >
+                    <v-icon
+                      size="24px"
+                      color="grey darken-3"
+                    >
+                      mdi-tag
+                    </v-icon>
+                    {{ item.version }}
+                  </div>
+                  <div
+                    v-if="item.license"
+                    class="package__info-item mr-12"
+                    title="license"
+                  >
+                    <v-icon
+                      size="24px"
+                      color="grey darken-3"
+                    >
+                      mdi-scale-balance
+                    </v-icon>
+                    {{ item.license }}
+                  </div>
+                </div>
+              </template>
+            </modal>
           </v-row>
         </template>
 
@@ -86,22 +148,27 @@
 
 <script>
 import AppFooter from '@/components/AppFooter'
+import Modal from '@/components/Modal'
 import AlgoliaService from '@/services/algolia'
 
 const HITS_PER_PAGE = 10
+const DEFAULT_PAGE = 0
 
 export default {
   name: 'App',
   components: {
-    AppFooter
+    AppFooter,
+    Modal
   },
   data () {
     return {
       search: '',
-      page: 0,
+      page: DEFAULT_PAGE,
       numberOfPages: null,
       hitsPerPage: HITS_PER_PAGE,
-      packages: []
+      packages: [],
+      isModal: false,
+      currentCard: null
     }
   },
   watch: {
@@ -149,6 +216,14 @@ export default {
     },
     formerPage () {
       if (this.page - 1 >= 0) this.page -= 1
+    },
+    openModal (name) {
+      this.currentCard = name
+      this.isModal = true
+    },
+    closeModal () {
+      this.isModal = false
+      this.currentCard = null
     }
   }
 }
@@ -164,5 +239,25 @@ export default {
   .card {
     width: 100%;
     cursor: pointer;
+  }
+
+  .package {
+    &__icon {
+      max-width: 50px;
+      max-height: 50px;
+      margin-right: 10px;
+      border-radius: 10px;
+    }
+
+    &__info {
+      display: flex;
+      align-items: center;
+
+      &-item {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+    }
   }
 </style>
